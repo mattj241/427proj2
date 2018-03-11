@@ -221,13 +221,12 @@ public class ChildThread extends Thread
 		
 		
 		try {
-			File fileExists = new File(serverFile);
-			fileExists.createNewFile(); //Automatically creates new file if non existent
+			//File fileExists = new File(serverFile);
+			//fileExists.createNewFile(); //Automatically creates new file if non existent
 
 			Scanner fileScanner = new Scanner(new File(serverFile));
 			
-			
-			if (serverFile.length() == 0)
+			if (serverFile.length() != 0)
 			{
 				//Parse the file
 				while(fileScanner.hasNextLine())
@@ -248,7 +247,7 @@ public class ChildThread extends Thread
 			{
 				recordToBeSet = 1001;
 			}
-			fileScanner.close();     
+			   
 		}
 		catch(FileNotFoundException ex) {
 			System.out.println(
