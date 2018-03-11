@@ -61,10 +61,15 @@ public class Client
 		SThread sThread = new SThread(clientSocket);
 		sThread.start();
 
-		while ((userInput = stdInput.readLine())!= "SHUTDOWN")
+		while ((userInput = stdInput.readLine())!= null)
 		{
 			os.println(userInput);
+			if (userInput == "SHUTDOWN")
+			{
+				break;
+			}
 		}
+		//sThread.join();
 		// close the input and output stream
 		// close the socket
 		os.close();
@@ -73,7 +78,12 @@ public class Client
 	    } 
 	    catch (IOException e) 
 	    {
-	    }
+	    	
+	    } 
+	    /*catch (InterruptedException e) {
+			System.out.println("joining broke!");
+			e.printStackTrace();
+		}*/
 	}
     }           
 }
@@ -135,7 +145,6 @@ class SThread extends Thread
 				System.out.println(serverInput);
 			}
 	    }
-
 	    is.close();
 	    socket.close();   
 	    System.exit(0);

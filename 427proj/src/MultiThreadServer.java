@@ -13,43 +13,49 @@ public class MultiThreadServer {
 	
 	public static final int SERVER_PORT = 9942; //Port for the client
 	
-    public static void main(String args[]) 
+    public static void main(String args[]) throws IOException, InterruptedException 
     {
-	ServerSocket myServerice = null;
-	Socket serviceSocket = null;
-
-	// Try to open a server socket 
-	try {
-	    myServerice = new ServerSocket(SERVER_PORT);
-	}
-	catch (IOException e) {
-	    System.out.println(e);
-	}   
-
-	// Create a socket object from the ServerSocket to listen and accept connections.
-	while (true)
-	{
-	    try 
-	    {
-	    	
-			// Received a connection
-			serviceSocket = myServerice.accept();
-			System.out.println("MultiThreadServer: new connection from " + serviceSocket.getInetAddress());
+		ServerSocket myServerice = null;
+		Socket serviceSocket = null;
 	
-			// Create and start the client handler thread
-			ChildThread cThread = new ChildThread(serviceSocket);
-			cThread.start();
-			cThread.join();
-	    }   
+		// Try to open a server socket 
+		try 
+		{
+		    myServerice = new ServerSocket(SERVER_PORT);
+		}
+		catch (IOException e) {
+		    System.out.println(e);
+		}   
+	
+		// Create a socket object from the ServerSocket to listen and accept connections.
+		try
+		{
+			while (true)
+			{
+		    	
+				// Received a connection
+				serviceSocket = myServerice.accept();
+				System.out.println("MultiThreadServer: new connection from " + serviceSocket.getInetAddress());
+		
+				// Create and start the client handler thread
+				ChildThread cThread = new ChildThread(serviceSocket);
+				cThread.start();
+				cThread.join();
+				if(!cThread.isAlive())
+				{
+					break;
+				}
+			}
+		}
 	    catch (IOException e) 
 	    {
 	    	System.out.println(e);
 	    } 
-	    catch (InterruptedException e) {
-			System.out.println("something happen when joining a thread");
-			e.printStackTrace();
+		finally
+		{
+		    myServerice.close();
+		    System.exit(0);
 		}
-	}
     }
 }
 

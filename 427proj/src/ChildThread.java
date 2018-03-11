@@ -21,9 +21,12 @@ public class ChildThread extends Thread
     private PrintStream os;
     
     private static int recordToBeSet; /*define from file*/;
+	private static String currentUser = "";
 	private static String listingString = "";
 	private static String serverFile = "server_info.txt"; //Default path of the database
+	private static String loginFile = "login_info.txt"; //Default path of login statistics
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
+	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
     
   //Writes all of the data from the array to the text file database
 	private static void writeToFile()
@@ -68,6 +71,10 @@ public class ChildThread extends Thread
 				{
 					return 301;
 				}
+				else if (Objects.equals(currentUser, ""))
+				{
+					return 401;
+				}
 				else if (inputArray[3].matches("\\d{3}-\\d{3}-\\d{4}"))
 				{
 					return 1;
@@ -82,6 +89,10 @@ public class ChildThread extends Thread
 				if (inputArray.length != 2)
 				{
 					return 301;
+				}
+				else if (Objects.equals(currentUser, ""))
+				{
+					return 401;
 				}
 				return 2;
 			}
@@ -102,10 +113,39 @@ public class ChildThread extends Thread
 				return 4;
 			}
 			else if(Objects.equals(inputArray[0], "SHUTDOWN")) {
+				if (inputArray.length != 1) 
+				{
+					return 301;
+				}
+				else if (Objects.equals(currentUser, "root"))
+				{
+					return 5;
+				}
+				return 402;
+			}
+			else if(Objects.equals(inputArray[0], "LOGIN")) {
+				if (inputArray.length != 3) {
+					return 301;
+				}
+				return 6;
+			}
+			else if(Objects.equals(inputArray[0], "LOGOUT")) {
 				if (inputArray.length != 1) {
 					return 301;
 				}
-				return 5;
+				return 7;
+			}
+			else if(Objects.equals(inputArray[0], "WHO")) {
+				if (inputArray.length != 1) {
+					return 301;
+				}
+				return 8;
+			}
+			else if(Objects.equals(inputArray[0], "LOOK")) {
+				if (inputArray.length != 3) {
+					return 301;
+				}
+				return 9;
 			}
 			else 
 			{
@@ -119,9 +159,13 @@ public class ChildThread extends Thread
 		public static String executeCommand(int inputNum, String[] inputArray)
 		{
 			String idToCheck = "";
+			String userName = "";
+			String passWord = "";
 			String message_OK = "200 OK";
 			String message_NotFound = "403 The Record ID does not exist.";
-			String newRecord = "The new Record is: ";
+			String newRecord = "The new record is: ";
+			String loginFailMessage = "410 wrong username or password";
+			String error404 = "404 Your search did not match any records";
 			
 			if (inputNum == 1)
 			{
@@ -166,7 +210,9 @@ public class ChildThread extends Thread
 				{
 					System.out.println("\n" + message_OK + " Removing listing in log...");
 					return message_OK;
-				}else {
+				}
+				else 
+				{
 					System.out.println("\nID not found");
 					return message_NotFound;
 				}
@@ -200,12 +246,88 @@ public class ChildThread extends Thread
 				System.out.println(message_OK + " Client connection removed.");
 				return message_OK + "QUIT";
 			}
-			else
+			else if (inputNum == 5)
 			{
 				System.out.println(message_OK + " SHUTDOWN");
 				System.out.println("Shutting down...Writing Log memory to file");
 				writeToFile(); //Writes all of the data to file upon shutting down
 				return message_OK + "SHUTDOWN";
+			}
+			else if (inputNum == 6)
+			{
+				boolean found = false;
+
+				userName = inputArray[1];
+				passWord = inputArray[2];
+				for (int i = 0; i < inputArray.length; i++)
+				{
+					System.out.print(inputArray[i] + " ");
+				}
+				for (int i = 0; i < loginLog.size() && !found; i++)
+				{
+					if ((Objects.equals(userName, loginLog.get(i)[0])) && (Objects.equals(passWord, loginLog.get(i)[1])))
+					{
+						found = true;
+					}
+				}
+				if (found)
+				{
+					System.out.println("\n" + message_OK);
+					return message_OK;
+				}else {
+					System.out.println("\nLogin info not found");
+					return loginFailMessage;
+				}
+			}
+			else if (inputNum == 7)
+			{
+				System.out.println(message_OK + " LOGOUT");
+				System.out.println("user " + currentUser + " is now logged out");
+				currentUser = "";
+				writeToFile(); //Writes all of the data to file upon shutting down
+				return message_OK + "You have been logged out.";
+			}
+			else if (inputNum == 9)
+			{
+				int count = 0;
+				String queryResult = "";
+				int identifier = Integer.parseInt(inputArray[1]);
+				String key = inputArray[2];
+				for (int i = 0; i < inputArray.length; i++)
+				{
+					System.out.print(inputArray[i] + " ");
+				}
+				for (int i = 0; i < infoLog.size(); i++)
+				{
+					if (Objects.equals(key, infoLog.get(i)[identifier]))
+					{
+						count++;
+						for (int j = 0; j < 4; j++)
+						{
+							queryResult = queryResult + infoLog.get(i)[j] + " ";
+							if (j == 3)
+							{
+								queryResult += "@";
+							}
+						}
+					}
+				}
+				if (count != 0)
+				{
+					String stringCount = String.valueOf(count);
+					System.out.println("\n" + message_OK + " Sending matches to client...");
+					return message_OK + "Found " + stringCount + " matches:@" + queryResult;
+				}
+				else 
+				{
+					System.out.println("\nNo matches");
+					return error404;
+				}
+			}
+			else 
+			{
+				//Last implemented command
+				return null;
 			}
 		}
 
@@ -225,6 +347,7 @@ public class ChildThread extends Thread
 			//fileExists.createNewFile(); //Automatically creates new file if non existent
 
 			Scanner fileScanner = new Scanner(new File(serverFile));
+			Scanner fileScanner_infoLog = new Scanner(new File(loginFile));
 			
 			if (serverFile.length() != 0)
 			{
@@ -247,12 +370,18 @@ public class ChildThread extends Thread
 			{
 				recordToBeSet = 1001;
 			}
-			   
+			if (loginFile.length() != 0)
+			{
+				while(fileScanner_infoLog.hasNextLine())
+				{
+					String text = fileScanner_infoLog.nextLine();
+					String [] loginInfoLine = text.split("@");
+					loginLog.add(loginInfoLine);
+				}
+			}
 		}
 		catch(FileNotFoundException ex) {
-			System.out.println(
-					"Unable to open '" + 
-							serverFile + "'");                
+			System.out.println("Unable to open a file");                
 		}
 
     }
@@ -260,9 +389,9 @@ public class ChildThread extends Thread
     public void run() 
     {
 		String line = "";
-		boolean done = false;
 		int typeCommand = 0;
 		String sendToClient = "";
+
 		
 		synchronized(handlers) 
 		{
@@ -276,10 +405,6 @@ public class ChildThread extends Thread
 		    {
 				String[] organizedInput = line.split(" ");
 				organizedInput[0] = organizedInput[0].toUpperCase();
-				if (Objects.equals(organizedInput[0], "SHUTDOWN"))
-				{
-					done = true;
-				}
 				typeCommand = processInput(organizedInput);
 				if(typeCommand == 300)
 				{
@@ -289,12 +414,29 @@ public class ChildThread extends Thread
 				{
 					os.println("301 invalid message format");
 				}
+				else if(typeCommand == 401)
+				{
+					os.println("401 You are not currently logged in, login first");
+				}
+				else if(typeCommand == 402)
+				{
+					os.println("402 User not allowed to execute this command");
+				}
 				else
 				{
+					
 					sendToClient = executeCommand(typeCommand, organizedInput);
 					os.println(sendToClient);
+					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
+					{
+						break;
+					}
+					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
+					{
+						currentUser = organizedInput[1];
+					}
 				}
-				
+
 				/*// Broadcast it to everyone!  You will change this.  
 				// Most commands do not need to broadcast
 				for(int i = 0; i < handlers.size(); i++) 
@@ -314,6 +456,7 @@ public class ChildThread extends Thread
 		catch(IOException ioe) 
 		{
 		    ioe.printStackTrace();
+		    System.out.println("shutdown failed");
 		} 
 		finally 
 		{
