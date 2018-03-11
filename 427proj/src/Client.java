@@ -7,6 +7,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import java.util.Objects;
 
 public class Client 
 {
@@ -19,13 +20,15 @@ public class Client
 	String userInput = null;
 	BufferedReader stdInput = null;
 	String clientIp = "";
+	BufferedReader is = null;
+	String serverInput = null;
 
 	//Check the number of command line parameters
 	if (args.length < 1)
 	{
 	    System.out.println("Usage: client <Server IP Address>");
 	    Scanner scanner = new Scanner( System.in );
-	    clientIp = scanner.nextLine();	
+	    clientIp = scanner.nextLine();
 	}
 
 	// Try to open a socket on SERVER_PORT
@@ -33,7 +36,9 @@ public class Client
 	try 
 	{
 	    clientSocket = new Socket(clientIp, SERVER_PORT);
+	    System.out.println("connection to server success!");
 	    os = new PrintStream(clientSocket.getOutputStream());
+	    is = new BufferedReader (new InputStreamReader(clientSocket.getInputStream()));
 	    stdInput = new BufferedReader(new InputStreamReader(System.in));
 	} 
 	catch (UnknownHostException e) 
@@ -56,12 +61,10 @@ public class Client
 		SThread sThread = new SThread(clientSocket);
 		sThread.start();
 
-		//handle the user input
-		while ((userInput = stdInput.readLine())!= null)
+		while ((userInput = stdInput.readLine())!= "SHUTDOWN")
 		{
-		    os.println(userInput);
+			os.println(userInput);
 		}
-
 		// close the input and output stream
 		// close the socket
 		os.close();
@@ -103,7 +106,34 @@ class SThread extends Thread
 
 	    while ((serverInput = is.readLine())!= null)
 	    {
-		System.out.println("s:" + serverInput);
+	    	//System.out.println("from server: " + serverInput);
+	    	//serverInput = is.readLine();
+			if (Objects.equals(serverInput.substring(0, 1), "2"))
+			{
+				System.out.println(serverInput.substring(0, 6));
+
+				if (serverInput.length() > 22)
+				{
+					String [] list = serverInput.substring(6).split("@");
+					for (int i = 0; i < list.length; i++)
+					{
+						System.out.println(list[i]);
+					}
+				}
+				else if (Objects.equals(serverInput.substring(6), "QUIT")
+						|| Objects.equals(serverInput.substring(6), "SHUTDOWN"))
+				{
+					break;
+				}
+				else
+				{
+					System.out.println(serverInput.substring(6));
+				}
+			}
+			else
+			{
+				System.out.println(serverInput);
+			}
 	    }
 
 	    is.close();

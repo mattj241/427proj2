@@ -31,6 +31,7 @@ public class MultiThreadServer {
 	{
 	    try 
 	    {
+	    	
 			// Received a connection
 			serviceSocket = myServerice.accept();
 			System.out.println("MultiThreadServer: new connection from " + serviceSocket.getInetAddress());
@@ -38,16 +39,16 @@ public class MultiThreadServer {
 			// Create and start the client handler thread
 			ChildThread cThread = new ChildThread(serviceSocket);
 			cThread.start();
-			//cThread.join();
+			cThread.join();
 	    }   
 	    catch (IOException e) 
 	    {
 	    	System.out.println(e);
 	    } 
-	    /*catch (InterruptedException e) {
+	    catch (InterruptedException e) {
 			System.out.println("something happen when joining a thread");
 			e.printStackTrace();
-		}*/
+		}
 	}
     }
 }

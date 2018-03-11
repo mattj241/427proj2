@@ -7,29 +7,33 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.Vector;
+
 
 public class ChildThread extends Thread 
 {
     static  Vector<ChildThread> handlers = new Vector<ChildThread>(20);
     private Socket socket;
     private BufferedReader in;
+    private BufferedReader is;
     private PrintWriter out;
+    private PrintStream os;
     
     private static int recordToBeSet; /*define from file*/;
 	private static String listingString = "";
-	private static String fileName = "server_info.txt"; //Default path of the database
+	private static String serverFile = "server_info.txt"; //Default path of the database
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
     
   //Writes all of the data from the array to the text file database
 	private static void writeToFile()
 	{
 		try {
-			PrintWriter eraser = new PrintWriter(fileName);
+			PrintWriter eraser = new PrintWriter(serverFile);
 			eraser.println("");
 			eraser.close();
 
-			PrintWriter writer = new PrintWriter(fileName);
+			PrintWriter writer = new PrintWriter(serverFile);
 
 			writer.println(recordToBeSet);
 			for(int i = 0; i < infoLog.size(); i++)
@@ -213,24 +217,86 @@ public class ChildThread extends Thread
 		    new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(
 		    new OutputStreamWriter(socket.getOutputStream()));
+		os = new PrintStream(socket.getOutputStream());
+		
+		
+		try {
+			File fileExists = new File(serverFile);
+			fileExists.createNewFile(); //Automatically creates new file if non existent
+
+			Scanner fileScanner = new Scanner(new File(serverFile));
+			
+			
+			if (serverFile.length() == 0)
+			{
+				//Parse the file
+				while(fileScanner.hasNextLine())
+				{
+					String text = fileScanner.nextLine();
+					if (text.matches("\\d{4}$"))
+					{
+						recordToBeSet = Integer.parseInt(text);
+					}
+					else
+					{
+						String [] infoLogLine = text.split("@");
+						infoLog.add(infoLogLine);
+					}
+				}
+			}
+			else
+			{
+				recordToBeSet = 1001;
+			}
+			fileScanner.close();     
+		}
+		catch(FileNotFoundException ex) {
+			System.out.println(
+					"Unable to open '" + 
+							serverFile + "'");                
+		}
+
     }
 
     public void run() 
     {
-		String line;
+		String line = "";
+		boolean done = false;
+		int typeCommand = 0;
+		String sendToClient = "";
+		
 		synchronized(handlers) 
 		{
 		    // add the new client in Vector class
 		    handlers.addElement(this);
 		}
-
+		
 		try 
 		{
 		    while ((line = in.readLine()) != null) 
 		    {
-				System.out.println(line);
-			
-				// Broadcast it to everyone!  You will change this.  
+				String[] organizedInput = line.split(" ");
+				organizedInput[0] = organizedInput[0].toUpperCase();
+				if (Objects.equals(organizedInput[0], "SHUTDOWN"))
+				{
+					done = true;
+				}
+				typeCommand = processInput(organizedInput);
+				if(typeCommand == 300)
+				{
+					os.println("300 invalid command");
+				}
+				else if(typeCommand == 301)
+				{
+					os.println("301 invalid message format");
+				}
+				else
+				{
+					sendToClient = executeCommand(typeCommand, organizedInput);
+					os.println(sendToClient);
+				}
+				
+				/*// Broadcast it to everyone!  You will change this.  
 				// Most commands do not need to broadcast
 				for(int i = 0; i < handlers.size(); i++) 
 				{	
@@ -243,7 +309,7 @@ public class ChildThread extends Thread
 						    handler.out.flush();
 						}
 				    }
-				}
+				}*/
 		    }
 		} 
 		catch(IOException ioe) 
