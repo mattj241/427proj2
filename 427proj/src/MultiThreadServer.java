@@ -40,11 +40,11 @@ public class MultiThreadServer {
 				// Create and start the client handler thread
 				ChildThread cThread = new ChildThread(serviceSocket);
 				cThread.start();
-				cThread.join();
+				/*cThread.join();
 				if(!cThread.isAlive())
 				{
 					break;
-				}
+				}*/
 			}
 		}
 	    catch (IOException e) 

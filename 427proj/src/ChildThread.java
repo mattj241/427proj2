@@ -21,6 +21,7 @@ public class ChildThread extends Thread
     private PrintStream os;
     
     private static int recordToBeSet; /*define from file*/;
+    private static boolean fileRead = false;
 	private static String currentUser = "";
 	private static String listingString = "";
 	private static String serverFile = "server_info.txt"; //Default path of the database
@@ -58,6 +59,51 @@ public class ChildThread extends Thread
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private static void readFile()
+	{
+		
+		try {
+			Scanner fileScanner = new Scanner(new File(serverFile));
+			Scanner fileScanner_infoLog = new Scanner(new File(loginFile));
+			
+			if (serverFile.length() != 0)
+			{
+				//Parse the file
+				while(fileScanner.hasNextLine())
+				{
+					String text = fileScanner.nextLine();
+					if (text.matches("\\d{4}$"))
+					{
+						recordToBeSet = Integer.parseInt(text);
+					}
+					else
+					{
+						String [] infoLogLine = text.split("@");
+						infoLog.add(infoLogLine);
+					}
+				}
+			}
+			else
+			{
+				recordToBeSet = 1001;
+			}
+			if (loginFile.length() != 0)
+			{
+				while(fileScanner_infoLog.hasNextLine())
+				{
+					String text = fileScanner_infoLog.nextLine();
+					String [] loginInfoLine = text.split("@");
+					loginLog.add(loginInfoLine);
+				}
+			}
+			fileRead = true;
+		}
+		catch(FileNotFoundException ex) {
+			System.out.println("Unable to open a file");                
+		}
+
 	}
 	
 	//This function takes in initial user input then parses it
@@ -340,50 +386,10 @@ public class ChildThread extends Thread
 		out = new PrintWriter(
 		    new OutputStreamWriter(socket.getOutputStream()));
 		os = new PrintStream(socket.getOutputStream());
-		
-		
-		try {
-			//File fileExists = new File(serverFile);
-			//fileExists.createNewFile(); //Automatically creates new file if non existent
-
-			Scanner fileScanner = new Scanner(new File(serverFile));
-			Scanner fileScanner_infoLog = new Scanner(new File(loginFile));
-			
-			if (serverFile.length() != 0)
-			{
-				//Parse the file
-				while(fileScanner.hasNextLine())
-				{
-					String text = fileScanner.nextLine();
-					if (text.matches("\\d{4}$"))
-					{
-						recordToBeSet = Integer.parseInt(text);
-					}
-					else
-					{
-						String [] infoLogLine = text.split("@");
-						infoLog.add(infoLogLine);
-					}
-				}
-			}
-			else
-			{
-				recordToBeSet = 1001;
-			}
-			if (loginFile.length() != 0)
-			{
-				while(fileScanner_infoLog.hasNextLine())
-				{
-					String text = fileScanner_infoLog.nextLine();
-					String [] loginInfoLine = text.split("@");
-					loginLog.add(loginInfoLine);
-				}
-			}
+		if(!fileRead)
+		{
+			readFile();
 		}
-		catch(FileNotFoundException ex) {
-			System.out.println("Unable to open a file");                
-		}
-
     }
 
     public void run() 
@@ -392,92 +398,98 @@ public class ChildThread extends Thread
 		int typeCommand = 0;
 		String sendToClient = "";
 
-		
 		synchronized(handlers) 
 		{
 		    // add the new client in Vector class
 		    handlers.addElement(this);
 		}
-		
-		try 
-		{
-		    while ((line = in.readLine()) != null) 
-		    {
-				String[] organizedInput = line.split(" ");
-				organizedInput[0] = organizedInput[0].toUpperCase();
-				typeCommand = processInput(organizedInput);
-				if(typeCommand == 300)
+		 	try 
+			{
+		 		ChildThread handler = this;
+				/*if (handler != this) 
 				{
-					os.println("300 invalid command");
-				}
-				else if(typeCommand == 301)
-				{
-					os.println("301 invalid message format");
-				}
-				else if(typeCommand == 401)
-				{
-					os.println("401 You are not currently logged in, login first");
-				}
-				else if(typeCommand == 402)
-				{
-					os.println("402 User not allowed to execute this command");
-				}
-				else
-				{
-					
-					sendToClient = executeCommand(typeCommand, organizedInput);
-					os.println(sendToClient);
-					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
-					{
-						break;
-					}
-					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
-					{
-						currentUser = organizedInput[1];
-					}
-				}
-
-				/*// Broadcast it to everyone!  You will change this.  
-				// Most commands do not need to broadcast
-				for(int i = 0; i < handlers.size(); i++) 
-				{	
-				    synchronized(handlers) 
-				    {
-						ChildThread handler = (ChildThread)handlers.elementAt(i);
-						if (handler != this) 
-						{
-						    handler.out.println(line);
-						    handler.out.flush();
-						}
-				    }
+				    handler.out.println(line);
+				    handler.out.flush();
 				}*/
-		    }
-		} 
-		catch(IOException ioe) 
-		{
-		    ioe.printStackTrace();
-		    System.out.println("shutdown failed");
-		} 
-		finally 
-		{
-		    try 
-		    {
-				in.close();
-				out.close();
-				socket.close();
-		    } 
-		    catch(IOException ioe) 
-		    {
-		    	
-		    } 
-		    finally 
-		    {
-				synchronized(handlers) 
-				{
-				    handlers.removeElement(this);
-				}
-		    }
+			    while ((line = in.readLine()) != null) 
+			    {
+					String[] organizedInput = line.split(" ");
+					organizedInput[0] = organizedInput[0].toUpperCase();
+					typeCommand = processInput(organizedInput);
+					if(typeCommand == 300)
+					{
+						handler.out.println("300 invalid command");
+					}
+					else if(typeCommand == 301)
+					{
+						handler.out.println("301 invalid message format");
+					}
+					else if(typeCommand == 401)
+					{
+						handler.out.println("401 You are not currently logged in, login first");
+					}
+					else if(typeCommand == 402)
+					{
+						handler.out.println("402 User not allowed to execute this command");
+					}
+					else
+					{
+						sendToClient = executeCommand(typeCommand, organizedInput);
+						handler.out.println(sendToClient);
+						if (Objects.equals(organizedInput[0], "SHUTDOWN"))
+						{
+							break;
+						}
+						else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
+						{
+							currentUser = organizedInput[1];
+						}
+					}
+					handler.out.flush();
+					/*// Broadcast it to everyone!  You will change this.  
+					// Most commands do not need to broadcast
+					for(int i = 0; i < handlers.size(); i++) 
+					{	
+					    synchronized(handlers) 
+					    {
+							ChildThread handler = (ChildThread)handlers.elementAt(i);
+							if (handler != this) 
+							{
+							    handler.out.println(line);
+							    handler.out.flush();
+							}
+					    }
+					}*/
+			    }
+			} 
+			catch(IOException ioe) 
+			{
+			    ioe.printStackTrace();
+			    System.out.println("shutdown failed");
+			} 
+			finally 
+			{
+			    try 
+			    {
+					in.close();
+					out.close();
+					socket.close();
+			    } 
+			    catch(IOException ioe) 
+			    {
+			    	
+			    } 
+			    finally 
+			    {
+					synchronized(handlers) 
+					{
+					    handlers.removeElement(this);
+					}
+			    }
+			}
 		}
+		
+		
     }
-}
+
 
