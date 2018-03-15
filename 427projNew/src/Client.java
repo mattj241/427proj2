@@ -1,5 +1,3 @@
-
-
 /* 
  * Client.java
  */
@@ -17,11 +15,10 @@ public class Client
 	{
 		Socket clientSocket = null;  
 		PrintStream os = null;
+		BufferedReader is = null;
 		String userInput = null;
 		BufferedReader stdInput = null;
 		String clientIp = "";
-		BufferedReader is = null;
-		String serverInput = null;
 
 		//Check the number of command line parameters
 		if (args.length < 1)
@@ -29,7 +26,6 @@ public class Client
 			System.out.println("Usage: client <Server IP Address>");
 			Scanner scanner = new Scanner( System.in );
 			clientIp = scanner.nextLine();
-			scanner.close();
 		}
 
 		// Try to open a socket on SERVER_PORT
@@ -53,7 +49,6 @@ public class Client
 
 		// If everything has been initialized then we want to write some data
 		// to the socket we have opened a connection to on port 25
-
 		if (clientSocket != null && os != null) 
 		{
 			try 
@@ -70,21 +65,14 @@ public class Client
 						break;
 					}
 				}
-				//sThread.join();
-				// close the input and output stream
-				// close the socket
 				os.close();
-				clientSocket.close();   
+				clientSocket.close();  
 				System.exit(0);
 			} 
 			catch (IOException e) 
 			{
 				//Error Handler Here If needed
 			} 
-			/*catch (InterruptedException e) {
-			System.out.println("joining broke!");
-			e.printStackTrace();
-		}*/
 		}
 	}           
 }
@@ -147,11 +135,12 @@ class SThread extends Thread
 				}
 			}
 			is.close();
-			socket.close();   
+			socket.close();
 			System.exit(0);
 		} 
 		catch (IOException e) 
 		{
+			//Error Handler
 		}
 	}           
 }

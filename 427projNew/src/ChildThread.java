@@ -2,10 +2,8 @@
  * ChildThread.java
  */
 
-
 import java.io.*;
 import java.net.Socket;
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
@@ -29,6 +27,7 @@ public class ChildThread extends Thread
 	private static String loginFile = "login_info.txt"; //Default path of login statistics
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
 	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
+	static ArrayList<String> whoList = new ArrayList <String>(20);
 
 	//Writes all of the data from the array to the text file database
 	private static void writeToFile()
@@ -69,6 +68,7 @@ public class ChildThread extends Thread
 			Scanner fileScanner = new Scanner(new File(serverFile));
 			Scanner fileScanner_infoLog = new Scanner(new File(loginFile));
 
+			//Write if not empty
 			if (serverFile.length() != 0)
 			{
 				//Parse the file
@@ -89,7 +89,7 @@ public class ChildThread extends Thread
 			else
 			{
 				recordToBeSet = 1001;
-			}
+			}//Write if not empty
 			if (loginFile.length() != 0)
 			{
 				while(fileScanner_infoLog.hasNextLine())
@@ -103,10 +103,10 @@ public class ChildThread extends Thread
 			fileScanner.close();
 			fileScanner_infoLog.close();
 		}
-		catch(FileNotFoundException ex) {
+		catch(FileNotFoundException ex) 
+		{
 			System.out.println("Unable to open a file");                
 		}
-
 	}
 
 	//This function takes in initial user input then parses it
@@ -202,7 +202,6 @@ public class ChildThread extends Thread
 			return 300; //Returned if the command is not one of the five
 		}
 	}
-
 
 	//This function takes the command type and the user input as arguments
 	//The function then processes the input depending on the command type
@@ -334,13 +333,25 @@ public class ChildThread extends Thread
 		{
 			System.out.println(message_OK + " LOGOUT");
 			System.out.println("user " + currentUser + " is now logged out");
+			//Removes the current user from the list of logged in users
+			try {
+				for (String string : whoList) 
+				{	
+					if (string.contains(currentUser)) 
+					{
+						whoList.remove(string);
+					}					
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+			}
 			currentUser = "";
 			writeToFile(); //Writes all of the data to file upon shutting down
 			return message_OK + "You have been logged out.";
 		}//WHO Command Handler
 		else if (inputNum == 8)
 		{
-			
+
 			return message_OK;
 		}//LOOK Command Handler
 		else if (inputNum == 9)
@@ -387,7 +398,6 @@ public class ChildThread extends Thread
 		}
 	}
 
-
 	public ChildThread(Socket socket) throws IOException 
 	{
 		this.socket = socket;
@@ -407,6 +417,7 @@ public class ChildThread extends Thread
 		String line = "";
 		int typeCommand = 0;
 		String sendToClient = "";
+		String listIp = "The list of the active users:";
 
 		synchronized(handlers) 
 		{
@@ -416,12 +427,6 @@ public class ChildThread extends Thread
 		try 
 		{
 			ChildThread handler = this;
-			/*if (handler != this) 
-				{
-				    handler.out.println(line);
-				    handler.out.flush();
-				}*/
-			//Error Messages To Display To Client
 			while ((line = in.readLine()) != null) 
 			{
 				String[] organizedInput = line.split(" ");
@@ -457,34 +462,29 @@ public class ChildThread extends Thread
 					}
 					else if ((Objects.equals(organizedInput[0],"WHO")) && (Objects.equals(sendToClient, "200 OK"))) 
 					{
-						ArrayList<String> whoList = new ArrayList <String>(20);
-						for (ChildThread client : handlers) {
-							if (ChildThread.currentUser != "")
+						//Run through each client, if they are logged in
+						//Add them to active users (whoList)
+						for (ChildThread client : handlers) 
+						{
+							if (client.currentUser != "")
 							{
-								whoList.add(ChildThread.currentUser + " " + client.socket.getLocalAddress());
+								String temp = "";
+								temp += client.socket.getLocalAddress();
+								temp = temp.replace('/', ' ');
+								whoList.add(client.currentUser + " " + temp);
 							}	
 						}
-						for (String string : whoList) 
+						handler.out.println(listIp);
+						if (!whoList.isEmpty()) 
 						{
-							handler.out.println(string);
+							for (String string : whoList) 
+							{
+								handler.out.println(string);
+							}
 						}						
 					}
 				}
 				handler.out.flush();
-				/*// Broadcast it to everyone!  You will change this.  
-					// Most commands do not need to broadcast
-					for(int i = 0; i < handlers.size(); i++) 
-					{	
-					    synchronized(handlers) 
-					    {
-							ChildThread handler = (ChildThread)handlers.elementAt(i);
-							if (handler != this) 
-							{
-							    handler.out.println(line);
-							    handler.out.flush();
-							}
-					    }
-					}*/
 			}
 		} 
 		catch(IOException ioe) 
@@ -502,7 +502,7 @@ public class ChildThread extends Thread
 			} 
 			catch(IOException ioe) 
 			{
-
+				//Error Handler
 			} 
 			finally 
 			{
