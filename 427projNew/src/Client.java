@@ -23,7 +23,7 @@ public class Client
 		//Check the number of command line parameters
 		if (args.length < 1)
 		{
-			System.out.println("Usage: client <Server IP Address>");
+			System.out.println("Please enter your IP address or 127.0.0.1");
 			Scanner scanner = new Scanner( System.in );
 			clientIp = scanner.nextLine();
 		}
@@ -60,10 +60,7 @@ public class Client
 				while ((userInput = stdInput.readLine())!= null)
 				{
 					os.println(userInput);
-					if (userInput == "SHUTDOWN")
-					{
-						break;
-					}
+					
 				}
 				os.close();
 				clientSocket.close();  
@@ -105,9 +102,13 @@ class SThread extends Thread
 
 			while ((serverInput = is.readLine())!= null)
 			{
-				//System.out.println("from server: " + serverInput);
-				//serverInput = is.readLine();
-				if (Objects.equals(serverInput.substring(0, 1), "2"))
+				if (Objects.equals(serverInput.substring(0, 3), "210"))
+				{
+					System.out.println(serverInput);
+					//break;
+					//System.exit(0);
+				}
+				else if (Objects.equals(serverInput.substring(0, 3), "200"))
 				{
 					System.out.println(serverInput.substring(0, 6));
 
@@ -122,11 +123,12 @@ class SThread extends Thread
 					else if (Objects.equals(serverInput.substring(6), "QUIT")
 							|| Objects.equals(serverInput.substring(6), "SHUTDOWN"))
 					{
+						System.out.println(serverInput);
 						break;
 					}
 					else
 					{
-						System.out.println(serverInput.substring(6));
+						//System.out.println(serverInput.substring(6));
 					}
 				}
 				else

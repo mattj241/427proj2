@@ -28,6 +28,11 @@ public class ChildThread extends Thread
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
 	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
 	static ArrayList<String> whoList = new ArrayList <String>(20);
+	
+	public void callShutDown()
+	{
+		System.exit(0);
+	}
 
 	//Writes all of the data from the array to the text file database
 	private static void writeToFile()
@@ -114,6 +119,7 @@ public class ChildThread extends Thread
 	//The command type is then returned
 	public static int processInput(String [] inputArray)
 	{
+
 		//ADD Command Initialization
 		if(Objects.equals(inputArray[0], "ADD"))
 		{
@@ -195,6 +201,10 @@ public class ChildThread extends Thread
 			if (inputArray.length != 3) {
 				return 301;
 			}
+			else if((Integer.parseInt(inputArray[1]) < 1) || (Integer.parseInt(inputArray[1]) > 3))
+			{
+				return 301;
+			}
 			return 9;
 		}
 		else 
@@ -215,6 +225,7 @@ public class ChildThread extends Thread
 		String newRecord = "The new record is: ";
 		String loginFailMessage = "410 wrong username or password";
 		String error404 = "404 Your search did not match any records";
+		String shutdownServer = "210 the server is about to shutdown...";
 
 		//ADD Command Handler
 		if (inputNum == 1)
@@ -294,6 +305,18 @@ public class ChildThread extends Thread
 		else if (inputNum == 4)
 		{
 			System.out.println(message_OK + " Client connection removed.");
+			try {
+				for (String string : whoList) 
+				{	
+					if (string.contains(currentUser)) 
+					{
+						whoList.remove(string);
+					}					
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+			}
+			currentUser = "";
 			return message_OK + "QUIT";
 		}//SHUTDOWN Command Handler
 		else if (inputNum == 5)
@@ -301,7 +324,7 @@ public class ChildThread extends Thread
 			System.out.println(message_OK + " SHUTDOWN");
 			System.out.println("Shutting down...Writing Log memory to file");
 			writeToFile(); //Writes all of the data to file upon shutting down
-			return message_OK + "SHUTDOWN";
+			return shutdownServer;
 		}//LOGIN Command Handler
 		else if (inputNum == 6)
 		{
@@ -322,7 +345,7 @@ public class ChildThread extends Thread
 			}
 			if (found)
 			{
-				System.out.println("\n" + message_OK);
+				System.out.println(message_OK);
 				return message_OK;
 			}else {
 				System.out.println("\nLogin info not found");
@@ -332,18 +355,21 @@ public class ChildThread extends Thread
 		else if (inputNum == 7)
 		{
 			System.out.println(message_OK + " LOGOUT");
-			System.out.println("user " + currentUser + " is now logged out");
-			//Removes the current user from the list of logged in users
-			try {
-				for (String string : whoList) 
-				{	
-					if (string.contains(currentUser)) 
-					{
-						whoList.remove(string);
-					}					
+			if (currentUser != "")
+			{
+				System.out.println("user " + currentUser + " is now logged out");
+				//Removes the current user from the list of logged in users
+				try {
+					for (String string : whoList) 
+					{	
+						if (string.contains(currentUser)) 
+						{
+							whoList.remove(string);
+						}					
+					}
+				}catch (Exception e) {
+					// TODO: handle exception
 				}
-			}catch (Exception e) {
-				// TODO: handle exception
 			}
 			currentUser = "";
 			writeToFile(); //Writes all of the data to file upon shutting down
@@ -393,7 +419,7 @@ public class ChildThread extends Thread
 		}
 		else 
 		{
-			//Last implemented command
+			//shouldn't reach this point
 			return null;
 		}
 	}
@@ -454,7 +480,20 @@ public class ChildThread extends Thread
 					handler.out.println(sendToClient);
 					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
 					{
-						break;
+						for(int i = 0; i < handlers.size(); i++) 
+						{	
+						    synchronized(handlers) 
+						    {
+								if (handler != this) 
+								{
+								    //handler.out.println(line);
+								    //handler.out.flush();
+									handler.out.println(sendToClient);
+								}
+								
+						    }
+						}
+						//break;
 					}
 					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
 					{
@@ -499,6 +538,7 @@ public class ChildThread extends Thread
 				in.close();
 				out.close();
 				socket.close();
+				System.exit(0);
 			} 
 			catch(IOException ioe) 
 			{

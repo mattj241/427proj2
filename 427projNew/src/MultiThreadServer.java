@@ -13,6 +13,8 @@ public class MultiThreadServer {
 	{
 		ServerSocket myServerice = null;
 		Socket serviceSocket = null;
+		boolean shutdown = false;
+		int timer = 0;
 
 		// Try to open a server socket 
 		try 
@@ -28,7 +30,7 @@ public class MultiThreadServer {
 		{
 			while (true)
 			{
-
+				
 				// Received a connection
 				serviceSocket = myServerice.accept();
 				System.out.println("MultiThreadServer: new connection from " + serviceSocket.getInetAddress());
@@ -36,6 +38,7 @@ public class MultiThreadServer {
 				// Create and start the client handler thread
 				ChildThread cThread = new ChildThread(serviceSocket);
 				cThread.start();
+				//ChildThread.handlers.clear();
 			}
 		}
 		catch (IOException e) 
