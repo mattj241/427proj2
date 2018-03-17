@@ -30,12 +30,11 @@ public class ChildThread extends Thread
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
 	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
 	static ArrayList<String> whoList = new ArrayList <String>(20);
-	
+
 	public  void runQuit()
 	{
 		System.exit(0);
 	}
-	
 
 	//Writes all of the data from the array to the text file database
 	private static void writeToFile()
@@ -122,7 +121,6 @@ public class ChildThread extends Thread
 	//The command type is then returned
 	public static int processInput(String [] inputArray)
 	{
-
 		//ADD Command Initialization
 		if(Objects.equals(inputArray[0], "ADD"))
 		{
@@ -456,8 +454,9 @@ public class ChildThread extends Thread
 		try 
 		{
 			ChildThread handler = this;
-			while ((line = in.readLine()) != null) //(line = in.readLine()) != "shutdown" || (line = in.readLine()) != "SHUTDOWN"
+			while ((line = in.readLine()) != null) 
 			{
+				//Error messages handler
 				String[] organizedInput = line.split(" ");
 				organizedInput[0] = organizedInput[0].toUpperCase();
 				typeCommand = processInput(organizedInput);
@@ -489,9 +488,9 @@ public class ChildThread extends Thread
 						int initialSize = handlers.size();
 						for(int i = 0; i < initialSize; i++) 
 						{	
-						    synchronized(handlers) 
-						    {
-						    	handler = (ChildThread)handlers.elementAt(i);
+							synchronized(handlers) 
+							{
+								handler = (ChildThread)handlers.elementAt(i);
 
 								if (handler == this) 
 								{
@@ -505,18 +504,16 @@ public class ChildThread extends Thread
 									handler.out.flush();
 									handlers.removeElement(handler);
 								}
-								
-						    }
+
+							}
 						}
 					}
 					else if(Objects.equals(organizedInput[0], "QUIT")) //closes current handler
 					{
-						//handler.out.flush();
-						//handlers.removeElement(this);
 						break;
 					}
 					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK"))) //sets current user to who just logged in
-					{
+					{				
 						currentUser = organizedInput[1];
 					}
 					else if ((Objects.equals(organizedInput[0],"WHO")) && (Objects.equals(sendToClient, "200 OK")))
