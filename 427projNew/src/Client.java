@@ -119,8 +119,7 @@ class SThread extends Thread
 							System.out.println(list[i]);
 						}
 					}
-					else if (Objects.equals(serverInput.substring(6), "QUIT")
-							|| Objects.equals(serverInput.substring(6), "SHUTDOWN"))
+					else if (Objects.equals(serverInput.substring(6), "QUIT"))
 					{
 						System.out.println(serverInput);
 						break;

@@ -440,7 +440,6 @@ public class ChildThread extends Thread
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public void run() 
 	{
 		String line = "";
@@ -483,6 +482,7 @@ public class ChildThread extends Thread
 					handler.out.println(sendToClient);
 					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
 					{
+						os.println(sendToClient);
 						int initialSize = handlers.size();
 						for(int i = 0; i < initialSize; i++) 
 						{	
@@ -494,14 +494,12 @@ public class ChildThread extends Thread
 								{
 									handler.out.println(sendToClient);
 									handler.out.flush();
-									//handler.runQuit();
 									handlers.removeElement(this);
 								}
 								else if (handler != this) 
 								{
 									handler.out.println(sendToClient);
 									handler.out.flush();
-									//handler.runQuit();
 									handlers.removeElement(handler);
 								}
 								
