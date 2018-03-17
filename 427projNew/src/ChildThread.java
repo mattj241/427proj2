@@ -480,7 +480,7 @@ public class ChildThread extends Thread
 				{
 					sendToClient = executeCommand(typeCommand, organizedInput);
 					handler.out.println(sendToClient);
-					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
+					if (Objects.equals(organizedInput[0], "SHUTDOWN")) //handler broadcast when shutdown is detected
 					{
 						os.println(sendToClient);
 						int initialSize = handlers.size();
@@ -506,7 +506,7 @@ public class ChildThread extends Thread
 						    }
 						}
 					}
-					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
+					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK"))) //sets current user to who just logged in
 					{
 						currentUser = organizedInput[1];
 					}

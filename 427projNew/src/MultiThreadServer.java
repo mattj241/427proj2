@@ -30,7 +30,6 @@ public class MultiThreadServer {
 		{
 			while (true)
 			{
-				
 				// Received a connection
 				serviceSocket = myServerice.accept();
 				System.out.println("MultiThreadServer: new connection from " + serviceSocket.getInetAddress());
@@ -38,7 +37,6 @@ public class MultiThreadServer {
 				// Create and start the client handler thread
 				ChildThread cThread = new ChildThread(serviceSocket);
 				cThread.start();
-				
 			}
 		}
 		catch (IOException e) 

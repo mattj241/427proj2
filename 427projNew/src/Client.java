@@ -23,7 +23,7 @@ public class Client
 		//Check the number of command line parameters
 		if (args.length < 1)
 		{
-			System.out.println("Please enter your IP address or 127.0.0.1 to connect to the server.");
+			System.out.println("Please enter a valid IP address or some loopback address to connect to the server.");
 			Scanner scanner = new Scanner( System.in );
 			clientIp = scanner.nextLine();
 		}
@@ -56,11 +56,10 @@ public class Client
 				//Start a child thread to handle the server's messages
 				SThread sThread = new SThread(clientSocket);
 				sThread.start();
-
 				while ((userInput = stdInput.readLine())!= null)
 				{
+					//Client to server input handled here
 					os.println(userInput);
-					
 				}
 				os.close();
 				clientSocket.close();  
@@ -126,7 +125,7 @@ class SThread extends Thread
 					}
 					else
 					{
-						//System.out.println(serverInput.substring(6));
+						//Do nothing
 					}
 				}
 				else
