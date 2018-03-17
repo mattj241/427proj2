@@ -72,7 +72,8 @@ LIST
 QUIT
  - input: quit
  - client: 200 OK
- - server: 200 OK Client connection removed.
+ - server: 200 OK connection from <the user if they were logged in, else blank> removed.
+	   user <the user if they were logged in, else blank> is now logged out
 
 SHUTDOWN
  - input: shutdown (if root)
