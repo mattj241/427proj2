@@ -23,7 +23,7 @@ public class Client
 		//Check the number of command line parameters
 		if (args.length < 1)
 		{
-			System.out.println("Please enter your IP address or 127.0.0.1");
+			System.out.println("Please enter your IP address or 127.0.0.1 to connect to the server.");
 			Scanner scanner = new Scanner( System.in );
 			clientIp = scanner.nextLine();
 		}
@@ -105,8 +105,7 @@ class SThread extends Thread
 				if (Objects.equals(serverInput.substring(0, 3), "210"))
 				{
 					System.out.println(serverInput);
-					//break;
-					//System.exit(0);
+					break;
 				}
 				else if (Objects.equals(serverInput.substring(0, 3), "200"))
 				{

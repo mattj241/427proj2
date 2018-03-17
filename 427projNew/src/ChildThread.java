@@ -10,6 +10,7 @@ import java.util.Scanner;
 import java.util.Vector;
 
 
+
 public class ChildThread extends Thread 
 {
 	static  Vector<ChildThread> handlers = new Vector<ChildThread>(20);
@@ -29,10 +30,11 @@ public class ChildThread extends Thread
 	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
 	static ArrayList<String> whoList = new ArrayList <String>(20);
 	
-	public void callShutDown()
+	public  void runQuit()
 	{
 		System.exit(0);
 	}
+	
 
 	//Writes all of the data from the array to the text file database
 	private static void writeToFile()
@@ -438,6 +440,7 @@ public class ChildThread extends Thread
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void run() 
 	{
 		String line = "";
@@ -480,20 +483,30 @@ public class ChildThread extends Thread
 					handler.out.println(sendToClient);
 					if (Objects.equals(organizedInput[0], "SHUTDOWN"))
 					{
-						for(int i = 0; i < handlers.size(); i++) 
+						int initialSize = handlers.size();
+						for(int i = 0; i < initialSize; i++) 
 						{	
 						    synchronized(handlers) 
 						    {
-								if (handler != this) 
+						    	handler = (ChildThread)handlers.elementAt(i);
+
+								if (handler == this) 
 								{
-								    //handler.out.println(line);
-								    //handler.out.flush();
 									handler.out.println(sendToClient);
+									handler.out.flush();
+									//handler.runQuit();
+									handlers.removeElement(this);
+								}
+								else if (handler != this) 
+								{
+									handler.out.println(sendToClient);
+									handler.out.flush();
+									//handler.runQuit();
+									handlers.removeElement(handler);
 								}
 								
 						    }
 						}
-						//break;
 					}
 					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK")))
 					{
