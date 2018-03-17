@@ -380,7 +380,7 @@ public class ChildThread extends Thread
 		}//WHO Command Handler
 		else if (inputNum == 8)
 		{
-
+			System.out.println("listing current users...");
 			return message_OK;
 		}//LOOK Command Handler
 		else if (inputNum == 9)
@@ -476,6 +476,7 @@ public class ChildThread extends Thread
 				else if(typeCommand == 402)
 				{
 					handler.out.println("402 User not allowed to execute this command");
+					System.out.println("Access denied");
 				}
 				else
 				{
@@ -539,7 +540,11 @@ public class ChildThread extends Thread
 							{
 								handler.out.println(string);
 							}
-						}						
+						}
+						else
+						{
+							handler.out.println("No one is online.");
+						}
 					}
 				}
 				handler.out.flush();
