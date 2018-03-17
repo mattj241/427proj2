@@ -26,6 +26,7 @@ public class ChildThread extends Thread
 	private static String listingString = "";
 	private static String serverFile = "server_info.txt"; //Default path of the database
 	private static String loginFile = "login_info.txt"; //Default path of login statistics
+	private static boolean shuttingDown = false;
 	static ArrayList<String[]> infoLog = new ArrayList<String[]>();
 	static ArrayList<String[]> loginLog = new ArrayList <String[]>();
 	static ArrayList<String> whoList = new ArrayList <String>(20);
@@ -455,7 +456,7 @@ public class ChildThread extends Thread
 		try 
 		{
 			ChildThread handler = this;
-			while ((line = in.readLine()) != null) 
+			while ((line = in.readLine()) != null) //(line = in.readLine()) != "shutdown" || (line = in.readLine()) != "SHUTDOWN"
 			{
 				String[] organizedInput = line.split(" ");
 				organizedInput[0] = organizedInput[0].toUpperCase();
@@ -483,6 +484,7 @@ public class ChildThread extends Thread
 					if (Objects.equals(organizedInput[0], "SHUTDOWN")) //handler broadcast when shutdown is detected
 					{
 						os.println(sendToClient);
+						shuttingDown = true;
 						int initialSize = handlers.size();
 						for(int i = 0; i < initialSize; i++) 
 						{	
@@ -506,11 +508,17 @@ public class ChildThread extends Thread
 						    }
 						}
 					}
+					else if(Objects.equals(organizedInput[0], "QUIT")) //closes current handler
+					{
+						//handler.out.flush();
+						//handlers.removeElement(this);
+						break;
+					}
 					else if ((Objects.equals(organizedInput[0], "LOGIN")) && (Objects.equals(sendToClient, "200 OK"))) //sets current user to who just logged in
 					{
 						currentUser = organizedInput[1];
 					}
-					else if ((Objects.equals(organizedInput[0],"WHO")) && (Objects.equals(sendToClient, "200 OK"))) 
+					else if ((Objects.equals(organizedInput[0],"WHO")) && (Objects.equals(sendToClient, "200 OK")))
 					{
 						//Run through each client, if they are logged in
 						//Add them to active users (whoList)
@@ -549,7 +557,10 @@ public class ChildThread extends Thread
 				in.close();
 				out.close();
 				socket.close();
-				System.exit(0);
+				if (shuttingDown)
+				{
+					System.exit(0);
+				}
 			} 
 			catch(IOException ioe) 
 			{

@@ -120,7 +120,7 @@ class SThread extends Thread
 					}
 					else if (Objects.equals(serverInput.substring(6), "QUIT"))
 					{
-						System.out.println(serverInput);
+						System.out.println(serverInput.substring(6));
 						break;
 					}
 					else
