@@ -24,7 +24,7 @@ How to compile and run this project:
 
 2) How to compile: In 1 UNIX terminal, type exactly whats in the quotes: "javac Server.java",  "javac MultiThreadServer.java" and then "javac Client.java". All files should now be compiled for use.
 
-3) In the server terminal, type "java Server" to start running the server. A newline should be shown in the server terminal.
+3) In the server terminal, type "java Server" to start running the server. "Server started!" should be shown in the server terminal.
 
 4) In any client terminal, type "java Client" to initiate a connection to the running server. 
    ***"Please enter a valid IP address or some loopback address to connect to the server." should appear in the client terminal.

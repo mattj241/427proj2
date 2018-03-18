@@ -20,6 +20,7 @@ public class MultiThreadServer {
 		try 
 		{
 			myServerice = new ServerSocket(SERVER_PORT);
+			System.out.println("Server started!");
 		}
 		catch (IOException e) {
 			System.out.println(e);

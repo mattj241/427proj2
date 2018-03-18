@@ -43,8 +43,8 @@ public class ChildThread extends Thread
 		boolean found = false;
 		for (int i = 0; i < whoList.size(); i++) 
 		{
-			if (Objects.equals(address, whoList.get(i).IP_id))
-			{
+			if (Objects.equals(address.substring(1), whoList.get(i).IP_id.substring(1)))
+			{			
 				found = true;
 			}
 		}
@@ -354,7 +354,7 @@ public class ChildThread extends Thread
 		else if (inputNum == 4)
 		{
 			String currentUser = getMyName(currentThread);
-			if (!foundMyIP)
+			if (foundMyIP)
 			{
 				System.out.println("user " + currentUser + " is now logged out");
 				//Removes the current user from the list of logged in users
@@ -416,7 +416,7 @@ public class ChildThread extends Thread
 		else if (inputNum == 7)
 		{
 			System.out.println(message_OK + " LOGOUT");
-			if (!foundMyIP)
+			if (foundMyIP)
 			{
 				String currentUser = getMyName(currentThread);
 				System.out.println("user " + currentUser + " is now logged out");
